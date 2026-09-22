@@ -1,0 +1,38 @@
+services:
+  minecraft:
+    build:
+      context: .
+    image: mc-neoforge:local
+    container_name: minecraft
+    restart: unless-stopped
+
+    ports:
+      - "25565:25565"
+      - "25575:25575"
+
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      MINECRAFT_DATA_DIR: /var/lib/minecraft
+      MINECRAFT_MAXHEAP: 4096M
+      MINECRAFT_MINHEAP: 1024M
+
+      # Never regenerate server.properties from the MINECRAFT_* env vars;
+      # ./data/server.properties is the source of truth. Edit that file, not this.
+      MINECRAFT_SKIP_SERVER_PROPERTIES: "true"
+
+      # Only still read by /usr/bin/healthcheck (rcon-cli), not written to
+      # server.properties. Must match rcon.password in ./data/server.properties.
+      MINECRAFT_RCON_PASSWORD: webhippie
+
+    volumes:
+      - ./data:/var/lib/minecraft
+
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+
+    stop_grace_period: 60s

@@ -1,0 +1,23 @@
+FROM ghcr.io/dockhippie/minecraft-vanilla:1.21.1-amd64 AS build
+
+EXPOSE 25565 25575
+
+ENV NEOFORGE_VERSION 21.1.251
+ENV NEOFORGE_URL https://maven.neoforged.net/releases/net/neoforged/neoforge/${NEOFORGE_VERSION}/neoforge-${NEOFORGE_VERSION}-installer.jar
+
+RUN apt-get update && \
+  apt-get upgrade -y && \
+  apt-get install -y libatomic1 && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
+  curl --create-dirs -sLo /usr/share/minecraft/neoforge-${NEOFORGE_VERSION}-installer.jar ${NEOFORGE_URL} && \
+  cd /usr/share/minecraft && \
+  mkdir mods && \
+  java -jar neoforge-${NEOFORGE_VERSION}-installer.jar --installServer && \
+  rm -f neoforge-${NEOFORGE_VERSION}-installer.jar neoforge-${NEOFORGE_VERSION}-installer.jar.log run.bat run.sh
+
+COPY ./overlay /
+
+RUN find /etc/container.d /etc/entrypoint.d -type f -name \*.sh -exec sed -i 's/\r$//' {} +; \
+  sed -i 's/\r$//' /usr/bin/container && \
+  chmod +x /usr/bin/container /etc/container.d/*.sh /etc/entrypoint.d/*.sh
