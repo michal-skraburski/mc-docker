@@ -23,7 +23,7 @@ services:
 
       # Only still read by /usr/bin/healthcheck (rcon-cli), not written to
       # server.properties. Must match rcon.password in ./data/server.properties.
-      MINECRAFT_RCON_PASSWORD: webhippie
+      MINECRAFT_RCON_PASSWORD: supersecretcustompassword123!
 
     volumes:
       - ./data:/var/lib/minecraft
