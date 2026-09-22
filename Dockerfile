@@ -2,7 +2,7 @@ FROM ghcr.io/dockhippie/minecraft-vanilla:1.21.1-amd64 AS build
 
 EXPOSE 25565 25575
 
-ENV NEOFORGE_VERSION 21.1.251
+ENV NEOFORGE_VERSION 21.1.235
 ENV NEOFORGE_URL https://maven.neoforged.net/releases/net/neoforged/neoforge/${NEOFORGE_VERSION}/neoforge-${NEOFORGE_VERSION}-installer.jar
 
 RUN apt-get update && \
