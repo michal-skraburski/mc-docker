@@ -14,8 +14,26 @@ services:
       PUID: "1000"
       PGID: "1000"
       MINECRAFT_DATA_DIR: /var/lib/minecraft
-      MINECRAFT_MAXHEAP: 4096M
-      MINECRAFT_MINHEAP: 1024M
+      # Heap goes through these, NOT JAVA_OPTS - /usr/bin/container prepends
+      # -Xmx/-Xms from them before JAVA_OPTS. Xms == Xmx avoids resize pauses.
+      MINECRAFT_MAXHEAP: 12288M
+      MINECRAFT_MINHEAP: 12288M
+
+      # Generational ZGC. Concurrent, sub-ms pauses, no G1 young-gen stutter.
+      # JAVA_OPTS is the var the launcher actually passes to the JVM;
+      # MINECRAFT_JAVA_OPTS is defined by the base image but never used, and
+      # its default (-XX:+UseConcMarkSweepGC) is fatal on Java 21.
+      # ZGenerational is required on 21; it became the default in JDK 24.
+      JAVA_OPTS: >-
+        -XX:+UseZGC
+        -XX:+ZGenerational
+        -XX:+AlwaysPreTouch
+        -XX:+DisableExplicitGC
+        -XX:+PerfDisableSharedMem
+      # Deliberately NOT carrying Aikar's flags over: every -XX:G1* option plus
+      # MaxGCPauseMillis, SurvivorRatio and MaxTenuringThreshold is G1 tuning.
+      # The JVM accepts them silently under ZGC (no warning) but UseG1GC stays
+      # false, so they do nothing. Adding them would only look like tuning.
 
       # Never regenerate server.properties from the MINECRAFT_* env vars;
       # ./data/server.properties is the source of truth. Edit that file, not this.
@@ -32,7 +50,7 @@ services:
       test: ["CMD", "/usr/bin/healthcheck"]
       interval: 30s
       timeout: 10s
-      start_period: 120s
+      start_period: 300s
       retries: 3
 
     stop_grace_period: 60s
